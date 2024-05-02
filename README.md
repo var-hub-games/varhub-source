@@ -1,2 +1,2 @@
-# connect-four
-https://var-hub-games.github.io/connect-four/
+# varhub-source
+https://var-hub-games.github.io/varhub-source/
