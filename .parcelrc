@@ -1,0 +1,9 @@
+{
+	"extends": "@flinbein/parcel-config-varhub",
+	"transformers": {
+		"text:*": ["@parcel/transformer-inline-string"]
+	},
+	"optimizers": {
+	  "text:*": []
+	}
+}
