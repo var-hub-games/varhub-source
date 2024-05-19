@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import { Varhub, VarhubClient } from "@flinbein/varhub-web-client";
 import { RoomActions } from "./RoomActions";
 
@@ -12,13 +12,30 @@ export const EnterRoom: FC<EnterRoomProps> = ({url, roomId}) => {
 	const [name, setName] = useState("");
 	const [client, setClient] = useState<VarhubClient|null>(null);
 
-	const joinRoom = async () => {
+	const hub = useMemo(() => new Varhub(url), ["url"]);
+
+	const [message, setMessage] = useState<string|null>(null);
+	const [messageLoading, setMessageLoading] = useState(false);
+
+	useEffect(() => {
+		let active = true;
+		hub.getRoomMessage(roomId)
+			.then((message) => active && setMessage(message))
+			.finally(() => active && setLoading(false))
+		;
+		return () => {
+			active = false;
+			setMessage(null);
+			setLoading(false);
+		}
+	}, [hub]);
+
+	const joinRoom = () => {
 		if (loading) return;
 		try {
 			setLoading(true);
-			const hub = new Varhub(url);
-			const hubClient = await hub.join(roomId, name, {});
-			setClient(hubClient);``
+			const hubClient = hub.createClient(roomId, name, {});
+			setClient(hubClient);
 		} finally {
 			setLoading(false);
 		}
@@ -28,14 +45,28 @@ export const EnterRoom: FC<EnterRoomProps> = ({url, roomId}) => {
 		if (!client) return;
 		const clearClient = () => setClient(null);
 		client.on("close", clearClient);
+		client.on("ready", () => console.log("CLIENT-READY"));
+		client.on("message", (...data) => console.log("CLIENT-MESSAGE", data));
 		return () => void client.off("close", clearClient);
 	}, [client]);
 
 	if (!client) return (
-		<div className="form-line">
-			<input disabled={Boolean(loading)} placeholder="name" value={name} onChange={e => setName(e.target.value)}/>
-			<button disabled={Boolean(loading)} onClick={joinRoom}>Join</button>
-		</div>
+		<>
+			<div className="form-line">
+				<input
+					value={name}
+					placeholder="name"
+					autoFocus
+					disabled={Boolean(loading)}
+					onKeyDown={e => e.key === "Enter" && joinRoom()}
+					onChange={e => setName(e.target.value)}
+				/>
+				<button disabled={Boolean(loading)} onClick={joinRoom}>Join</button>
+			</div>
+			{(message !== null) && <div>
+				<code>{message}</code>
+			</div>}
+		</>
 	);
 
 	return <RoomActions client={client}/>

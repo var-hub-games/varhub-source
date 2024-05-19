@@ -2,14 +2,15 @@ import { FC, useMemo, useState } from "react";
 import { Editor } from "./code/Editor";
 import { Varhub } from "@flinbein/varhub-web-client";
 import defaultCode from "text:./defaultCode.ts";
+import { useLocalStorage } from "../use/useLocalStorage";
 
 
 
 export const CreateRoom: FC = () => {
-	const [code, setCode] = useState<string>(defaultCode);
-	const [jsonCode, setJsonCode] = useState<string>("{}");
-	const [url, setUrl] = useState("https://varhub.dpohvar.ru/");
-	const [mode, setMode] = useState(1);
+	const [code, setCode] = useLocalStorage<string>("code", defaultCode);
+	const [jsonCode, setJsonCode] = useLocalStorage<string>("jsonCode", "{}");
+	const [url, setUrl] = useLocalStorage("url", "https://varhub.dpohvar.ru/");
+	const [mode, setMode] = useLocalStorage("mode",1);
 	const [roomId, setRoomId] = useState("");
 	const [loading, setLoading] = useState(false);
 
@@ -27,10 +28,24 @@ export const CreateRoom: FC = () => {
 		try {
 			setLoading(true);
 			const hub = new Varhub(url);
+			const logger = await hub.createLogger();
+			logger.on("message", (roomId, eventSource, ...args) => {
+				if (eventSource === "quickjs") {
+					const [eventType, ...eventArgs] = args;
+					if (eventType === "console") {
+						const [logLevel, ...logArgs] = eventArgs;
+						return (console as any)[logLevel as string](`[ROOM ${roomId}]:`, ...logArgs);
+					}
+				}
+				if (eventSource === "error") {
+					return console.error(`[ROOM ${roomId}] error:`, ...args);
+				}
+				console.log(`[ROOM ${roomId}] ${eventSource}:`, ...args);
+			});
 			const roomInfo = await hub.createRoom({
 				main: "index.js",
 				source: {"index.js": code},
-			}, {integrity: false, async: Boolean(mode), config: jsonCode ? JSON.parse(jsonCode) : undefined });
+			} as any, {integrity: false, async: Boolean(mode), config: jsonCode ? JSON.parse(jsonCode) : undefined, logger: logger.id} as any);
 			setRoomId(roomInfo.id);
 		} finally {
 			setLoading(false);
@@ -50,10 +65,10 @@ export const CreateRoom: FC = () => {
 				</button>
 			</div>
 			{selectedFile === "index.js" && (
-				<Editor key={selectedFile} language="javascript" value={code} onChange={setCode} disabled={Boolean(loading || roomId)}/>
+				<Editor key={selectedFile} language="javascript" defaultValue={code} onChange={setCode} disabled={Boolean(loading || roomId)}/>
 			)}
 			{selectedFile === "varhub:config" && (
-				<Editor key={selectedFile} language="json" value={jsonCode} onChange={setJsonCode} disabled={Boolean(loading || roomId)}/>
+				<Editor key={selectedFile} language="json" defaultValue={jsonCode} onChange={setJsonCode} disabled={Boolean(loading || roomId)}/>
 			)}
 
 			<div className="form-line">

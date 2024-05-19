@@ -3,7 +3,7 @@ import EditorWorker from 'url:monaco-editor/esm/vs/editor/editor.worker.js';
 import JSONWorker from 'url:monaco-editor/esm/vs/language/json/json.worker.js';
 import varhubModules from "text:@flinbein/varhub-web-client/src/modules.d.ts"
 import selfModules from "text:../../modules.d.ts";
-import { FC, useEffect, useRef } from "react";
+import { FC, memo, useEffect, useRef } from "react";
 import { editor, languages } from "monaco-editor";
 
 self.MonacoEnvironment = {
@@ -24,7 +24,7 @@ interface EditorProps {
 	disabled?: boolean
 	onChange?: (value: string) => void;
 }
-export const Editor: FC<EditorProps> = ({language, value, disabled=false, defaultValue, onChange}) => {
+export const Editor = memo<EditorProps>(({language, value, disabled=false, defaultValue, onChange}) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const editorRef = useRef<editor.IStandaloneCodeEditor|undefined>(undefined);
 
@@ -51,7 +51,9 @@ export const Editor: FC<EditorProps> = ({language, value, disabled=false, defaul
 		});
 
 		editorRef.current = myEditor;
-		const updateValue = () => onChange?.(myEditor.getValue());
+		const updateValue = () => {
+			onChange?.(myEditor.getValue());
+		}
 		const eventListener = myEditor.onDidChangeModelContent(updateValue);
 		return () => {
 			eventListener.dispose();
@@ -60,4 +62,4 @@ export const Editor: FC<EditorProps> = ({language, value, disabled=false, defaul
 	}, [language]);
 
 	return <div className={`code-editor ${disabled ? "_disabled" : ""}`} style={{height: 500}} ref={containerRef}></div>
-}
+})

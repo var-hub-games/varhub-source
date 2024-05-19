@@ -1,5 +1,5 @@
-import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Console, ConsoleExpression, ConsoleResultInspector, ConsoleInput } from "@devtools-ds/console";
+import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { Console, ConsoleExpression, ConsoleResultInspector } from "@devtools-ds/console";
 import { Varhub, VarhubClient } from "@flinbein/varhub-web-client";
 
 const AsyncFunction = async function () {}.constructor as any;
@@ -7,7 +7,7 @@ const AsyncFunction = async function () {}.constructor as any;
 export const RoomActions: FC<{client: VarhubClient}> = ({client}) => {
 
 	const [history, setHistory] = useState<ConsoleExpression[]>([]);
-	const [inputHistory, setInputHistory] = useState<ConsoleExpression[]>([]);
+	console.log("RENDER CLIENT", client.ready);
 
 	const [processing, setProcessing] = useState(false);
 	const addHistory = useCallback((expr: Omit<ConsoleExpression, "id">) => {
@@ -26,6 +26,7 @@ export const RoomActions: FC<{client: VarhubClient}> = ({client}) => {
 			});
 		}
 		client.on("message", logEvent);
+		console.log("SUBSCRIBE-ON-CLIENT");
 		return () => void client.off("message", logEvent);
 	}, [client]);
 
