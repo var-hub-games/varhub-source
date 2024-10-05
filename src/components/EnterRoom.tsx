@@ -1,7 +1,6 @@
 import { FC, useEffect, useMemo, useState } from "react";
-import { Varhub, VarhubClient } from "@flinbein/varhub-web-client";
+import { Varhub, VarhubRpcClient } from "@flinbein/varhub-web-client";
 import { RoomActions } from "./RoomActions";
-
 
 interface EnterRoomProps {
 	url: string;
@@ -10,12 +9,11 @@ interface EnterRoomProps {
 export const EnterRoom: FC<EnterRoomProps> = ({url, roomId}) => {
 	const [loading, setLoading] = useState(false);
 	const [name, setName] = useState("");
-	const [client, setClient] = useState<VarhubClient|null>(null);
+	const [client, setClient] = useState<VarhubRpcClient|null>(null);
 
 	const hub = useMemo(() => new Varhub(url), ["url"]);
 
 	const [message, setMessage] = useState<string|null>(null);
-	const [messageLoading, setMessageLoading] = useState(false);
 
 	useEffect(() => {
 		let active = true;
@@ -34,7 +32,8 @@ export const EnterRoom: FC<EnterRoomProps> = ({url, roomId}) => {
 		if (loading) return;
 		try {
 			setLoading(true);
-			const hubClient = hub.createClient(roomId, name, {});
+			const clientWs = hub.join(roomId, {params: [name]});
+			const hubClient = new VarhubRpcClient(clientWs);
 			setClient(hubClient);
 		} finally {
 			setLoading(false);

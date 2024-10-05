@@ -1,18 +1,27 @@
 import { FC, useMemo, useState } from "react";
 import { Editor } from "./code/Editor";
 import { Varhub } from "@flinbein/varhub-web-client";
-import defaultCode from "text:./defaultCode.ts";
+import defaultCode from "./defaultCode.ts?raw";
 import { useLocalStorage } from "../use/useLocalStorage";
 
+console.log("DEFAULT-CODE", defaultCode);
 
 
 export const CreateRoom: FC = () => {
 	const [code, setCode] = useLocalStorage<string>("code", defaultCode);
 	const [jsonCode, setJsonCode] = useLocalStorage<string>("jsonCode", "{}");
+	const [loggerId, setLoggerId] = useState<string>(Math.random().toString(36).substring(2));
 	const [url, setUrl] = useLocalStorage("url", "https://varhub.dpohvar.ru/");
-	const [mode, setMode] = useLocalStorage("mode",1);
 	const [roomId, setRoomId] = useState("");
 	const [loading, setLoading] = useState(false);
+
+	const loggerCreateStringUrl = useMemo<string|undefined>(() => {
+		try {
+			if (!loggerId) return;
+			const vUrl = new URL(url);
+			return `devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws=${vUrl.host}/log/${loggerId}`
+		} catch {}
+	}, [url, loggerId])
 
 	const inviteUrl = useMemo<string|null>(() => {
 		if (!url) return null;
@@ -28,24 +37,15 @@ export const CreateRoom: FC = () => {
 		try {
 			setLoading(true);
 			const hub = new Varhub(url);
-			const logger = await hub.createLogger();
-			logger.on("message", (roomId, eventSource, ...args) => {
-				if (eventSource === "quickjs") {
-					const [eventType, ...eventArgs] = args;
-					if (eventType === "console") {
-						const [logLevel, ...logArgs] = eventArgs;
-						return (console as any)[logLevel as string](`[ROOM ${roomId}]:`, ...logArgs);
-					}
-				}
-				if (eventSource === "error") {
-					return console.error(`[ROOM ${roomId}] error:`, ...args);
-				}
-				console.log(`[ROOM ${roomId}] ${eventSource}:`, ...args);
+			const roomInfo = await hub.createRoom("ivm", {
+				module: {
+					main: "index.js",
+					source: {"index.js": code},
+				},
+				integrity: false,
+				config: jsonCode ? JSON.parse(jsonCode) : undefined,
+				inspect: loggerId ?? undefined
 			});
-			const roomInfo = await hub.createRoom({
-				main: "index.js",
-				source: {"index.js": code},
-			} as any, {integrity: false, async: Boolean(mode), config: jsonCode ? JSON.parse(jsonCode) : undefined, logger: logger.id} as any);
 			setRoomId(roomInfo.id);
 		} finally {
 			setLoading(false);
@@ -73,12 +73,14 @@ export const CreateRoom: FC = () => {
 
 			<div className="form-line">
 				<input disabled={Boolean(loading || roomId)} placeholder="varhub url" value={url} onChange={e => setUrl(e.target.value)} />
-				<select disabled={Boolean(loading || roomId)} value={mode} onChange={e => setMode(Number(e.target.value))}>
-					<option value={0}>default mode</option>
-					<option value={1}>async module loader</option>
-				</select>
+				<input disabled={Boolean(loading || roomId)} placeholder="logger id" value={loggerId} onChange={e => setLoggerId(e.target.value)} />
 				<button disabled={Boolean(loading || roomId)} onClick={createRoom}>Create room</button>
 			</div>
+
+			{loggerCreateStringUrl && <div>
+				create logger by opening url:
+				<p><code>{loggerCreateStringUrl}</code></p>
+			</div>}
 
 			{roomId && (
 				<div>

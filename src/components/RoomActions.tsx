@@ -1,10 +1,10 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { Console, ConsoleExpression, ConsoleResultInspector } from "@devtools-ds/console";
-import { Varhub, VarhubClient } from "@flinbein/varhub-web-client";
+import { Varhub, VarhubRpcClient } from "@flinbein/varhub-web-client";
 
 const AsyncFunction = async function () {}.constructor as any;
 
-export const RoomActions: FC<{client: VarhubClient}> = ({client}) => {
+export const RoomActions: FC<{client: VarhubRpcClient}> = ({client}) => {
 
 	const [history, setHistory] = useState<ConsoleExpression[]>([]);
 	console.log("RENDER CLIENT", client.ready);

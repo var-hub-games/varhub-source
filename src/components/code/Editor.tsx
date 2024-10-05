@@ -1,16 +1,16 @@
-import TSWorker from 'url:monaco-editor/esm/vs/language/typescript/ts.worker.js';
-import EditorWorker from 'url:monaco-editor/esm/vs/editor/editor.worker.js';
-import JSONWorker from 'url:monaco-editor/esm/vs/language/json/json.worker.js';
-import varhubModules from "text:@flinbein/varhub-web-client/src/modules.d.ts"
-import selfModules from "text:../../modules.d.ts";
-import { FC, memo, useEffect, useRef } from "react";
+import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
+import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
+import TsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
+import varhubModules from "@flinbein/varhub-web-client/src/modules.d.ts?raw"
+import selfModules from "../../modules.d.ts?raw";
+import { memo, useEffect, useRef } from "react";
 import { editor, languages } from "monaco-editor";
 
 self.MonacoEnvironment = {
-	getWorkerUrl: function (moduleId, label) {
-		if (label === 'json') return JSONWorker;
-		if (label === "javascript" || label === 'typescript') return TSWorker;
-		return EditorWorker;
+	getWorker: function (moduleId, label) {
+		if (label === 'json') return new JsonWorker();
+		if (label === "javascript" || label === 'typescript') return new TsWorker();
+		return new EditorWorker();
 	}
 };
 languages.typescript.javascriptDefaults.addExtraLib(varhubModules, 'varhubModules.d.ts');
