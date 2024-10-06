@@ -4,9 +4,6 @@ import { Varhub } from "@flinbein/varhub-web-client";
 import defaultCode from "./defaultCode.ts?raw";
 import { useLocalStorage } from "../use/useLocalStorage";
 
-console.log("DEFAULT-CODE", defaultCode);
-
-
 export const CreateRoom: FC = () => {
 	const [code, setCode] = useLocalStorage<string>("code", defaultCode);
 	const [jsonCode, setJsonCode] = useLocalStorage<string>("jsonCode", "{}");
