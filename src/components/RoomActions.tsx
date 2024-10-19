@@ -1,10 +1,10 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { Console, ConsoleExpression, ConsoleResultInspector } from "@devtools-ds/console";
-import { Varhub, VarhubRpcClient } from "@flinbein/varhub-web-client";
+import type { RPCChannel, VarhubClient } from "@flinbein/varhub-web-client";
 
 const AsyncFunction = async function () {}.constructor as any;
 
-export const RoomActions: FC<{client: VarhubRpcClient}> = ({client}) => {
+export const RoomActions: FC<{client: VarhubClient, rpc: RPCChannel<any>}> = ({client, rpc}) => {
 
 	const [history, setHistory] = useState<ConsoleExpression[]>([]);
 	console.log("RENDER CLIENT", client.ready);
@@ -30,11 +30,23 @@ export const RoomActions: FC<{client: VarhubRpcClient}> = ({client}) => {
 		return () => void client.off("message", logEvent);
 	}, [client]);
 
-	const varHandle = useMemo(() => Object.create(null), []);
+	const varHandle = useMemo(() => {
+		const varHandle = Object.create(null);
+		varHandle.console = console;
+		return varHandle;
+	}, []);
 	const proxyMethods = useMemo(() => (
 		new Proxy(varHandle, {
 			has: () => true,
-			get: (handle, m: string) => (m in handle) ? handle[m] : client.call.bind(client, m)
+			get: (handle, m: string|symbol) => {
+				if (typeof m === "symbol") return {};
+				return (m in handle) ? handle[m] : function(...args: any){
+					if (new.target) {
+						return new (rpc as any)[m](...args);
+					}
+					return (rpc as any)[m](...args)
+				}
+			}
 		})
 	), [client]);
 

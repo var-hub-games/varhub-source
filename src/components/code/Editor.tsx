@@ -13,6 +13,9 @@ self.MonacoEnvironment = {
 		return new EditorWorker();
 	}
 };
+
+console.log("!!!!!!! varhubModules", varhubModules);
+console.log("!!!!!!! selfModules", selfModules);
 languages.typescript.javascriptDefaults.addExtraLib(varhubModules, 'varhubModules.d.ts');
 languages.typescript.javascriptDefaults.addExtraLib(selfModules, 'modules.d.ts');
 

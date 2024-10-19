@@ -1,5 +1,5 @@
 import { FC, useEffect, useMemo, useState } from "react";
-import { Varhub, VarhubRpcClient } from "@flinbein/varhub-web-client";
+import { Varhub, type VarhubClient, RPCChannel } from "@flinbein/varhub-web-client";
 import { RoomActions } from "./RoomActions";
 
 interface EnterRoomProps {
@@ -9,7 +9,24 @@ interface EnterRoomProps {
 export const EnterRoom: FC<EnterRoomProps> = ({url, roomId}) => {
 	const [loading, setLoading] = useState(false);
 	const [name, setName] = useState("");
-	const [client, setClient] = useState<VarhubRpcClient|null>(null);
+	const [client, setClient] = useState<VarhubClient|null>(null);
+	const [clientStatus, setClientStatus] = useState<null|"closed"|"ready"|"connecting">(null);
+	const [rpc, setRpc] = useState<RPCChannel<any>|null>(null);
+
+	useEffect(() => {
+		if (!client) return setClientStatus(null);
+		if (client.ready) return setClientStatus("ready");
+		if (client.closed) return setClientStatus("closed");
+		setClientStatus("connecting");
+		const setReady = () => setClientStatus("ready");
+		const setClosed = () => setClientStatus("closed");
+		client.on("open", setReady) ;
+		client.on("close", setClosed);
+		return () => {
+			client.off("open", setReady);
+			client.off("close", setClosed);
+		}
+	}, [client]);
 
 	const hub = useMemo(() => new Varhub(url), ["url"]);
 
@@ -32,9 +49,11 @@ export const EnterRoom: FC<EnterRoomProps> = ({url, roomId}) => {
 		if (loading) return;
 		try {
 			setLoading(true);
-			const clientWs = hub.join(roomId, {params: [name]});
-			const hubClient = new VarhubRpcClient(clientWs);
-			setClient(hubClient);
+			const hubClient = hub.join(roomId, {params: [name]});
+			setClient(() => hubClient);
+			const rpc = new RPCChannel(hubClient, "$rpc");
+			setRpc(() => rpc);
+
 		} finally {
 			setLoading(false);
 		}
@@ -44,12 +63,12 @@ export const EnterRoom: FC<EnterRoomProps> = ({url, roomId}) => {
 		if (!client) return;
 		const clearClient = () => setClient(null);
 		client.on("close", clearClient);
-		client.on("ready", () => console.log("CLIENT-READY"));
+		client.on("open", () => console.log("CLIENT-READY"));
 		client.on("message", (...data) => console.log("CLIENT-MESSAGE", data));
 		return () => void client.off("close", clearClient);
 	}, [client]);
 
-	if (!client) return (
+	if (!client || !rpc) return (
 		<>
 			<div className="form-line">
 				<input
@@ -68,5 +87,9 @@ export const EnterRoom: FC<EnterRoomProps> = ({url, roomId}) => {
 		</>
 	);
 
-	return <RoomActions client={client}/>
+	if (clientStatus !== "ready") {
+		return <p>Client status {clientStatus}</p>;
+	}
+
+	return <RoomActions rpc={rpc} client={client}/>
 }
