@@ -1,6 +1,6 @@
 {
   "name": "@var-hub-games/varhub-source",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "type": "module",
   "description": "",
   "license": "MIT",
@@ -19,19 +19,18 @@
   "dependencies": {
     "@devtools-ds/console": "^1.2.1",
     "@devtools-ds/object-inspector": "^1.2.1",
-    "@flinbein/varhub-web-clent": "github:flinbein/varhub-web-client#2.1.10",
+    "@flinbein/varhub-web-client": "github:flinbein/varhub-web-client",
     "monaco-editor": "^0.52.0",
     "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@flinbein/varhub-api-network": "git+https://github.com/flinbein/varhub-api-network#1.1.0",
     "@types/node": "^22.7.7",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
-    "@types/varhub-web-client": "file:./node_modules/@flinbein/varhub-web-client",
+    "@types/varhub-web-client": "github:flinbein/varhub-web-client",
     "@vitejs/plugin-react": "^4.3.3",
     "@vitejs/plugin-react-swc": "^3.7.1",
     "cross-env": "^7.0.3",
