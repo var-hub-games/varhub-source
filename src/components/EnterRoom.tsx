@@ -15,13 +15,18 @@ export const EnterRoom: FC<EnterRoomProps> = ({url, roomId}) => {
 
 	useEffect(() => {
 		if (!client) return setClientStatus(null);
+		(window as any).__client = client;
 		if (client.ready) return setClientStatus("ready");
 		if (client.closed) return setClientStatus("closed");
 		setClientStatus("connecting");
-		const setReady = () => setClientStatus("ready");
-		const setClosed = () => setClientStatus("closed");
-		client.on("open", setReady) ;
-		client.on("close", setClosed);
+		const setReady = () => {
+			setClientStatus("ready");
+		}
+		const setClosed = () => {
+			setClientStatus("closed");
+		}
+		client.once("open", setReady) ;
+		client.once("close", setClosed);
 		return () => {
 			client.off("open", setReady);
 			client.off("close", setClosed);
@@ -51,22 +56,13 @@ export const EnterRoom: FC<EnterRoomProps> = ({url, roomId}) => {
 			setLoading(true);
 			const hubClient = hub.join(roomId, {params: [name]});
 			setClient(() => hubClient);
-			const rpc = new RPCChannel(hubClient, "$rpc");
+			const rpc = new RPCChannel(hubClient);
 			setRpc(() => rpc);
 
 		} finally {
 			setLoading(false);
 		}
 	}
-
-	useEffect(() => {
-		if (!client) return;
-		const clearClient = () => setClient(null);
-		client.on("close", clearClient);
-		client.on("open", () => console.log("CLIENT-READY"));
-		client.on("message", (...data) => console.log("CLIENT-MESSAGE", data));
-		return () => void client.off("close", clearClient);
-	}, [client]);
 
 	if (!client || !rpc) return (
 		<>
@@ -87,9 +83,18 @@ export const EnterRoom: FC<EnterRoomProps> = ({url, roomId}) => {
 		</>
 	);
 
+	if (clientStatus === "closed") {
+		return <p>
+			Client closed;
+			<button type="button" onClick={() => setClient(null)}>RECONNECT</button>
+		</p>;
+	}
+
+
 	if (clientStatus !== "ready") {
 		return <p>Client status {clientStatus}</p>;
 	}
+
 
 	return <RoomActions rpc={rpc} client={client}/>
 }
