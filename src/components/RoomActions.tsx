@@ -40,12 +40,7 @@ export const RoomActions: FC<{client: VarhubClient, rpc: RPCChannel<any>}> = ({c
 			has: () => true,
 			get: (handle, m: string|symbol) => {
 				if (typeof m === "symbol") return {};
-				return (m in handle) ? handle[m] : function(...args: any){
-					if (new.target) {
-						return new (rpc as any)[m](...args);
-					}
-					return (rpc as any)[m](...args)
-				}
+				return (m in handle) ? handle[m] : (rpc as any)[m]
 			}
 		})
 	), [client]);
