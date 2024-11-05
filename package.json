@@ -1,6 +1,6 @@
 {
   "name": "@var-hub-games/varhub-source",
-  "version": "2.1.5",
+  "version": "2.1.6",
   "type": "module",
   "description": "",
   "license": "MIT",
@@ -10,9 +10,9 @@
     "types": false
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=development MODE=development vite build ./src --mode development --emptyOutDir --outDir ../dist --base ./",
+    "build": "vite build ./src --mode production --emptyOutDir --outDir ../dist --base ./",
     "dev": "vite ./src --base / --open",
-    "preview": "cross-env NODE_ENV=development MODE=development vite preview --mode development .",
+    "preview": "vite preview ./src --mode production --outDir ../dist --base ./",
     "start": "npm run build && npm run dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -28,7 +28,7 @@
   "devDependencies": {
     "@types/node": "^22.7.7",
     "@types/qrcode": "^1.5.5",
-    "@types/react": "^18.3.11",
+    "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/varhub-web-client": "github:flinbein/varhub-web-client",
     "@vitejs/plugin-react": "^4.3.3",
@@ -36,6 +36,6 @@
     "cross-env": "^7.0.3",
     "husky": "^9.1.6",
     "typescript": "^5.6.3",
-    "vite": "^5.4.9"
+    "vite": "^5.4.10"
   }
 }
