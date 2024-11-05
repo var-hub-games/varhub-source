@@ -1,8 +1,7 @@
 import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
 import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
 import TsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
-import varhubModules from "@flinbein/varhub-web-client/src/modules.d.ts?raw"
-import selfModules from "../../modules.d.ts?raw";
+import varhubModules from "@flinbein/varhub-web-client/modules?raw"
 import { memo, useEffect, useRef } from "react";
 import { editor, languages } from "monaco-editor";
 
@@ -15,9 +14,7 @@ self.MonacoEnvironment = {
 };
 
 console.log("!!!!!!! varhubModules", varhubModules);
-console.log("!!!!!!! selfModules", selfModules);
 languages.typescript.javascriptDefaults.addExtraLib(varhubModules, 'varhubModules.d.ts');
-languages.typescript.javascriptDefaults.addExtraLib(selfModules, 'modules.d.ts');
 
 
 interface EditorProps {

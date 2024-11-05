@@ -54,7 +54,7 @@ export const EnterRoom: FC<EnterRoomProps> = ({url, roomId}) => {
 		if (loading) return;
 		try {
 			setLoading(true);
-			const hubClient = hub.join(roomId, {params: [name]});
+			const hubClient = hub.join(roomId, {params: [name], allowInspect: true});
 			setClient(() => hubClient);
 			const rpc = new RPCChannel(hubClient);
 			setRpc(() => rpc);
