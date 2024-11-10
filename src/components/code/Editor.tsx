@@ -6,7 +6,7 @@ import { memo, useEffect, useRef } from "react";
 import { editor, languages } from "monaco-editor";
 
 self.MonacoEnvironment = {
-	getWorker: function (moduleId, label) {
+	getWorker: function (_moduleId, label) {
 		if (label === 'json') return new JsonWorker();
 		if (label === "javascript" || label === 'typescript') return new TsWorker();
 		return new EditorWorker();

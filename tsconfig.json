@@ -2,6 +2,7 @@
   "compilerOptions": {
 		"lib": ["ES2020", "DOM"],
 		"allowSyntheticDefaultImports": true,
+		"moduleResolution": "Bundler",
     "esModuleInterop": true,
 		"strict": true,
 		"resolveJsonModule": true,
